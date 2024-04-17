@@ -17,7 +17,7 @@ def press_key(axis, value):
     key_map = {
         0: ('d', 'a'),  # X-axis for 'd' and 'a'
         1: ('w', 's'),  # Y-axis for 'w' and 's'
-        2: {11: 'e', 10: 'e', 21: 'q', 20: 'q'}  # Special keys with press/release actions
+        2: {11: 'e', 10: 'e', 21: 'q', 20: 'q', 31:'1',41:'2',30:'1',40:'2'},  # Special keys with press/release actions
     }
 
     if axis in (0, 1):  # Handle movement keys with quick tap

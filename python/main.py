@@ -13,6 +13,8 @@ device = uinput.Device([
     uinput.KEY_S,
     uinput.KEY_E,
     uinput.KEY_Q,
+    uinput.KEY_1,
+    uinput.KEY_2
 ])
 
 def parse_data(data):
@@ -27,7 +29,7 @@ def press_key(axis, value):
     key_map = {
         0: (uinput.KEY_D, uinput.KEY_A),  # X-axis for 'd' and 'a'
         1: (uinput.KEY_W, uinput.KEY_S),  # Y-axis for 'w' and 's'
-        2: {11: uinput.KEY_E, 10: uinput.KEY_E, 21: uinput.KEY_Q, 20: uinput.KEY_Q}  # Special keys with press/release actions
+        2: {11: uinput.KEY_E, 10: uinput.KEY_E, 21: uinput.KEY_Q, 20: uinput.KEY_Q, 31: uinput.KEY_1,30: uinput.KEY_1, 41: uinput.KEY_2, 40: uinput.KEY_2},  # Special keys with press/release actions
     }
 
     if axis in (0, 1):  # Handle movement keys with quick tap
