@@ -1,42 +1,62 @@
 import serial
-from pynput.keyboard import Key, Controller
+import uinput
 import time
 
+# Open serial port
 ser = serial.Serial('/dev/ttyACM0', 115200)
-keyboard = Controller()
+
+# Setup uinput device
+device = uinput.Device([
+    uinput.KEY_D,
+    uinput.KEY_A,
+    uinput.KEY_W,
+    uinput.KEY_S,
+    uinput.KEY_E,
+    uinput.KEY_Q,
+])
 
 def parse_data(data):
-    axis = data[0]
-    value = int.from_bytes(data[1:3], byteorder='little', signed=True)
+    axis = data[0]  # Key index
+    value = int.from_bytes(data[1:3], byteorder='little', signed=True)  # Press or release value
     return axis, value
 
 def press_key(axis, value):
     if value == 0 and axis != 2:
-        return  # Não faz nada se o valor for 0 e não for o terceiro eixo
+        return  # Don't do anything if value is 0 and it's not the third axis
 
-    if axis == 0:  # X-axis
-        key = 'd' if value < 0 else 'a'
-    elif axis == 1:  # Y-axis
-        key = 'w' if value > 0 else 's'
-    elif axis == 2:  # Third axis for additional keys
-        if value == 0:
-            key = 'e'  # 'E' key action
-        elif value == 1:
-            key = 'q'  # 'Q' key action
+    key_map = {
+        0: (uinput.KEY_D, uinput.KEY_A),  # X-axis for 'd' and 'a'
+        1: (uinput.KEY_W, uinput.KEY_S),  # Y-axis for 'w' and 's'
+        2: {11: uinput.KEY_E, 10: uinput.KEY_E, 21: uinput.KEY_Q, 20: uinput.KEY_Q}  # Special keys with press/release actions
+    }
 
-    # Press and release key
-    keyboard.press(key)
-    time.sleep(0.1)  # Hold key for 100 ms
-    keyboard.release(key)
+    if axis in (0, 1):  # Handle movement keys with quick tap
+        key = key_map[axis][0] if value > 0 else key_map[axis][1]
+        device.emit_click(key)
+
+    elif axis == 2:  # Handle hold and release keys
+        key_actions = key_map[axis]
+        if value in key_actions:
+            key = key_actions[value]
+            if value % 10 == 1:  # Press command
+                device.emit(key, 1)  # Key down
+            elif value % 10 == 0:  # Release command
+                device.emit(key, 0)  # Key up
 
 try:
-    print('Waiting for sync package...')
+    # Pacote de sync
     while True:
-        data = ser.read(1)
-        if data == b'\xff':
-            data = ser.read(3)
-            axis, value = parse_data(data)
-            press_key(axis, value)
+        print('Waiting for sync package...')
+        while True:
+            data = ser.read(1)
+            if data == b'\xff':
+                break
+
+        # Lendo 4 bytes da uart
+        data = ser.read(3)
+        axis, value = parse_data(data)
+        press_key(axis, value)
+
 
 except KeyboardInterrupt:
     print("Program terminated by user")

@@ -19,15 +19,27 @@ QueueHandle_t xQueueAdc;
 QueueHandle_t xQueueBtn;
 
 void btn_callback(uint gpio, uint32_t events){
-    int red = 0;
-    int blue = 1;
+    int red_rise = 11;
+    int red_fall = 10;
+    int blue_rise = 21;
+    int blue_fall = 20;
     if (events == 0x4){
         if(gpio == RED_BTN){
-            xQueueSend(xQueueBtn, &red, portMAX_DELAY);  // Envia a leitura para a fila
+            xQueueSendFromISR(xQueueBtn, &red_rise, 0);  // Envia a leitura para a fila
 
         }
         else if(gpio == BLUE_BTN){
-            xQueueSend(xQueueBtn, &blue, portMAX_DELAY);  // Envia a leitura para a fila
+            xQueueSendFromISR(xQueueBtn, &blue_rise, 0);  // Envia a leitura para a fila
+
+        } 
+    }
+    if (events == 0x8){
+        if(gpio == RED_BTN){
+            xQueueSendFromISR(xQueueBtn, &red_fall, 0);  // Envia a leitura para a fila
+
+        }
+        else if(gpio == BLUE_BTN){
+            xQueueSendFromISR(xQueueBtn, &blue_fall, 0);  // Envia a leitura para a fila
 
         } 
     }
@@ -56,7 +68,7 @@ void x_task(void *p) {
         if ((current_read - 2047) / 8 > -30 && (current_read - 2047) / 8 < 30) { //zona morta
             x_buffer[x_index] = 0;
         } else {
-            x_buffer[x_index] = (current_read - 2047) / 128;  // Normaliza o valor lido
+            x_buffer[x_index] = (current_read - 2047) / 256;  // Normaliza o valor lido
         }
 
         // Atualiza a soma para calcular a média móvel
@@ -86,7 +98,7 @@ void y_task(void *p) {
         if ((current_read - 2047) / 8 > -30 && (current_read - 2047) / 8 < 30) { //zona morta
             y_buffer[y_index] = 0;
         } else {
-            y_buffer[y_index] = (current_read - 2047) / 128;  // Normaliza o valor lido
+            y_buffer[y_index] = (current_read - 2047) / 256;  // Normaliza o valor lido
         }
 
         // Atualiza a soma para calcular a média móvel
@@ -134,10 +146,8 @@ void btn_task(void *p) {
             data.val = btn;
             write(data);
         }
-    }
+    } 
 }
-
-
 int main() {
     stdio_init_all();
     adc_init();
@@ -153,8 +163,8 @@ int main() {
     gpio_set_dir(RED_BTN, GPIO_IN);
     gpio_pull_up(RED_BTN);
 
-    gpio_set_irq_enabled_with_callback(RED_BTN, GPIO_IRQ_EDGE_FALL, true, &btn_callback);
-    gpio_set_irq_enabled_with_callback(BLUE_BTN, GPIO_IRQ_EDGE_FALL, true, &btn_callback);
+    gpio_set_irq_enabled_with_callback(RED_BTN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &btn_callback);
+    gpio_set_irq_enabled_with_callback(BLUE_BTN, GPIO_IRQ_EDGE_FALL | GPIO_IRQ_EDGE_RISE, true, &btn_callback);
 
 
     xQueueAdc = xQueueCreate(32, sizeof(adc_t));
