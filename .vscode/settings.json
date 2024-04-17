@@ -18,5 +18,10 @@
     },
     "cmake.buildBeforeRun": true,
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "cortex-debug.variableUseNaturalFormat": false
+    "cortex-debug.variableUseNaturalFormat": false,
+    "files.associations": {
+        "hc06.h": "c",
+        "stdio.h": "c",
+        "freertos.h": "c"
+    }
 }
