@@ -23,11 +23,11 @@ void btn_callback(uint gpio, uint32_t events){
     int blue = 1;
     if (events == 0x4){
         if(gpio == RED_BTN){
-            xQueueSend(xQueueBtn, &red, portMAX_DELAY);  // Envia a leitura para a fila
+            xQueueSendFromISR(xQueueBtn, &red, portMAX_DELAY);  // Envia a leitura para a fila
 
         }
         else if(gpio == BLUE_BTN){
-            xQueueSend(xQueueBtn, &blue, portMAX_DELAY);  // Envia a leitura para a fila
+            xQueueSendFromISR(xQueueBtn, &blue, portMAX_DELAY);  // Envia a leitura para a fila
 
         } 
     }
