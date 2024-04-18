@@ -3,7 +3,9 @@ import serial
 import time
 
 # Open serial port
-ser = serial.Serial('/dev/ttyACM0', 115200)
+# ser = serial.Serial('/dev/ttyACM0', 115200)
+ser = serial.Serial('/dev/rfcomm0', 9600)
+
 
 # Last pressed key state for movement axes
 last_pressed_keys = {0: None, 1: None}

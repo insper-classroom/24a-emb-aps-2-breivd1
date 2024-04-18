@@ -2,7 +2,6 @@
 #include <task.h>
 #include <semphr.h>
 #include <queue.h>
-
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include "hardware/adc.h"
@@ -140,10 +139,10 @@ void write(adc_t data){
     int msb = val >> 8;
     int lsb = val & 0xFF ;
 
-    uart_putc_raw(uart0, data.axis);
-    uart_putc_raw(uart0, lsb);
-    uart_putc_raw(uart0, msb);
-    uart_putc_raw(uart0, -1); 
+    uart_putc_raw(uart1, data.axis);
+    uart_putc_raw(uart1, lsb);
+    uart_putc_raw(uart1, msb);
+    uart_putc_raw(uart1, -1); 
 }
 
 void uart_task(void *p) {
@@ -173,14 +172,10 @@ void hc06_task(void *p) {
     uart_init(HC06_UART_ID, HC06_BAUD_RATE);
     gpio_set_function(HC06_TX_PIN, GPIO_FUNC_UART);
     gpio_set_function(HC06_RX_PIN, GPIO_FUNC_UART);
-    hc06_init("BREIVID", "1234");
+    hc06_init("breivid", "1234");
 
-    char command;
     while (true) {
-        if (xQueueReceive(xQueueAdc, &command, portMAX_DELAY)) {
-            char buffer[2] = {command, '\n'};
-            uart_puts(HC06_UART_ID, buffer);
-        }
+        
     }
 }
 
@@ -216,7 +211,10 @@ int main() {
     xQueueAdc = xQueueCreate(32, sizeof(adc_t));
     xQueueBtn = xQueueCreate(32, sizeof(adc_t));
 
-    xTaskCreate(hc06_task, "hc06_task", 4096, NULL, 1, NULL);
+    
+    printf("Start bluetooth task\n");
+
+    xTaskCreate(hc06_task, "UART_Task 1", 4096, NULL, 1, NULL);
     xTaskCreate(uart_task, "uart_task", 4096, NULL, 1, NULL);
     xTaskCreate(x_task, "x_task", 4096, NULL, 1, NULL);
     xTaskCreate(y_task, "y_task", 4096, NULL, 1, NULL);

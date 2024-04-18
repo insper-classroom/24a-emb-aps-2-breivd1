@@ -3,7 +3,8 @@ import uinput
 import time
 
 # Open serial port
-ser = serial.Serial('/dev/ttyACM0', 115200)
+# ser = serial.Serial('/dev/ttyACM0', 115200)
+ser = serial.Serial('/dev/rfcomm0', 9600)
 
 # Setup uinput device
 device = uinput.Device([
@@ -35,7 +36,7 @@ def press_key(axis, value):
     if axis in (0, 1):  # Handle movement keys with quick tap
         key = key_map[axis][0] if value > 0 else key_map[axis][1]
         device.emit_click(key)
-
+# 
     elif axis == 2:  # Handle hold and release keys
         key_actions = key_map[axis]
         if value in key_actions:
