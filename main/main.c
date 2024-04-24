@@ -87,7 +87,7 @@ void x_task(void *p) {
         if ((current_read - 2047) / 8 > -30 && (current_read - 2047) / 8 < 30) { //zona morta
             x_buffer[x_index] = 0;
         } else {
-            x_buffer[x_index] = (current_read - 2047) / 1024;  // Normaliza o valor lido
+            x_buffer[x_index] = (current_read - 2047) / 256;  // Normaliza o valor lido
         }
 
         // Atualiza a soma para calcular a média móvel
@@ -117,7 +117,7 @@ void y_task(void *p) {
         if ((current_read - 2047) / 8 > -30 && (current_read - 2047) / 8 < 30) { //zona morta
             y_buffer[y_index] = 0;
         } else {
-            y_buffer[y_index] = (current_read - 2047) / 1024;  // Normaliza o valor lido
+            y_buffer[y_index] = (current_read - 2047) / 256;  // Normaliza o valor lido
         }
 
         // Atualiza a soma para calcular a média móvel
