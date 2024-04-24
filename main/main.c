@@ -2,13 +2,13 @@
 #include <task.h>
 #include <semphr.h>
 #include <queue.h>
-
 #include "pico/stdlib.h"
 #include <stdio.h>
 #include "hardware/adc.h"
 
 #include <math.h>
 #include <stdlib.h>
+#include "hc06.h"
 
 uint const XPIN = 26;
 uint const YPIN = 27;
@@ -87,7 +87,7 @@ void x_task(void *p) {
         if ((current_read - 2047) / 8 > -30 && (current_read - 2047) / 8 < 30) { //zona morta
             x_buffer[x_index] = 0;
         } else {
-            x_buffer[x_index] = (current_read - 2047) / 128;  // Normaliza o valor lido
+            x_buffer[x_index] = (current_read - 2047) / 1024;  // Normaliza o valor lido
         }
 
         // Atualiza a soma para calcular a média móvel
@@ -117,7 +117,7 @@ void y_task(void *p) {
         if ((current_read - 2047) / 8 > -30 && (current_read - 2047) / 8 < 30) { //zona morta
             y_buffer[y_index] = 0;
         } else {
-            y_buffer[y_index] = (current_read - 2047) / 128;  // Normaliza o valor lido
+            y_buffer[y_index] = (current_read - 2047) / 1024;  // Normaliza o valor lido
         }
 
         // Atualiza a soma para calcular a média móvel
@@ -139,10 +139,10 @@ void write(adc_t data){
     int msb = val >> 8;
     int lsb = val & 0xFF ;
 
-    uart_putc_raw(uart0, data.axis);
-    uart_putc_raw(uart0, lsb);
-    uart_putc_raw(uart0, msb);
-    uart_putc_raw(uart0, -1); 
+    uart_putc_raw(uart1, data.axis);
+    uart_putc_raw(uart1, lsb);
+    uart_putc_raw(uart1, msb);
+    uart_putc_raw(uart1, -1); 
 }
 
 void uart_task(void *p) {
@@ -167,6 +167,18 @@ void btn_task(void *p) {
         }
     } 
 }
+
+void hc06_task(void *p) {
+    uart_init(HC06_UART_ID, HC06_BAUD_RATE);
+    gpio_set_function(HC06_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(HC06_RX_PIN, GPIO_FUNC_UART);
+    hc06_init("breivid", "1234");
+
+    while (true) {
+        
+    }
+}
+
 int main() {
     stdio_init_all();
     adc_init();
@@ -199,6 +211,10 @@ int main() {
     xQueueAdc = xQueueCreate(32, sizeof(adc_t));
     xQueueBtn = xQueueCreate(32, sizeof(adc_t));
 
+    
+    printf("Start bluetooth task\n");
+
+    xTaskCreate(hc06_task, "UART_Task 1", 4096, NULL, 1, NULL);
     xTaskCreate(uart_task, "uart_task", 4096, NULL, 1, NULL);
     xTaskCreate(x_task, "x_task", 4096, NULL, 1, NULL);
     xTaskCreate(y_task, "y_task", 4096, NULL, 1, NULL);
