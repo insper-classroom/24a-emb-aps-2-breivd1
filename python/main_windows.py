@@ -3,7 +3,7 @@ import serial
 import time
 
 # Open serial port
-ser = serial.Serial('/dev/ttyACM0', 115200)
+ser = serial.Serial('COM4', 115200)
 
 # Last pressed key state for movement axes
 last_pressed_keys = {0: None, 1: None}
@@ -16,14 +16,14 @@ def parse_data(data):
 def press_key(axis, value):
     global last_pressed_keys
     key_map = {
-        0: ('d', 'a'),  # X-axis for 'd' (right) and 'a' (left)
+        0: ('a', 'd'),  # X-axis for 'd' (right) and 'a' (left)
         1: ('w', 's'),  # Y-axis for 'w' (up) and 's' (down)
         2: {11: 'e', 10: 'e', 21: 'q', 20: 'q', 31: '1', 41: '2', 30: '1', 40: '2'},  # Special keys with press/release actions
     }
 
     if axis in (0, 1):  # Handle movement keys
         if value != 0:
-            current_key = key_map[axis][0] if value > 0 else key_map[axis][1]
+            current_key = key_map[axis][0] if value < 0 else key_map[axis][1]
             if current_key != last_pressed_keys[axis]:
                 if last_pressed_keys[axis] is not None:
                     pyautogui.keyUp(last_pressed_keys[axis])  # Release the previous key
